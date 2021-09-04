@@ -147,7 +147,7 @@ is fairly straightforward:
 ```c
 /* Create the data store context, and add all the callbacks to it */
 signal_protocol_store_context *store_context;
-signal_protocol_store_context_create(&store_context, context);
+signal_protocol_store_context_create(&store_context, global_context);
 signal_protocol_store_context_set_session_store(store_context, &session_store);
 signal_protocol_store_context_set_pre_key_store(store_context, &pre_key_store);
 signal_protocol_store_context_set_signed_pre_key_store(store_context, &signed_pre_key_store);
@@ -167,7 +167,7 @@ session_builder_process_pre_key_bundle(builder, retrieved_pre_key);
 /* Create the session cipher and encrypt the message */
 session_cipher *cipher;
 session_cipher_create(&cipher, store_context, &address, global_context);
-session_builder_set_version(cipher, 4);
+session_cipher_set_version(cipher, 4);
 
 ciphertext_message *encrypted_message;
 session_cipher_encrypt(cipher, message, message_len, &encrypted_message);
