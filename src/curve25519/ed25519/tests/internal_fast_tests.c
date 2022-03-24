@@ -281,6 +281,7 @@ int elligator_fast_test(int silent)
   return 0;
 }
 
+#define MSG_LEN 200
 int curvesigs_fast_test(int silent)
 {
   unsigned char signature_correct[64] = {
@@ -293,7 +294,7 @@ int curvesigs_fast_test(int silent)
     0x0b, 0xd6, 0xc1, 0x97, 0x3f, 0x7d, 0x78, 0x0a, 
     0xb3, 0x95, 0x18, 0x62, 0x68, 0x03, 0xd7, 0x82,
   };
-  const int MSG_LEN  = 200;
+  
   unsigned char privkey[32];
   unsigned char pubkey[32];
   unsigned char signature[64];
@@ -333,7 +334,6 @@ int xeddsa_fast_test(int silent)
   0x69, 0xad, 0xa5, 0x76, 0xd6, 0x3d, 0xca, 0xf2, 
   0xac, 0x32, 0x6c, 0x11, 0xd0, 0xb9, 0x77, 0x02,
   };
-  const int MSG_LEN  = 200;
   unsigned char privkey[32];
   unsigned char pubkey[32];
   unsigned char signature[64];
