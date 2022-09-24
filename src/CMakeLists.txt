@@ -1,4 +1,4 @@
-if(BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS AND NOT MSVC)
 	find_library(M_LIB m)
 endif()
 
@@ -73,7 +73,9 @@ add_library(omemo-c
 )
 
 if(BUILD_SHARED_LIBS)
-	target_link_libraries(omemo-c ${M_LIB})
+	if(NOT MSVC)
+		target_link_libraries(omemo-c ${M_LIB})
+	endif()
 	set_target_properties(omemo-c PROPERTIES
 		VERSION ${OMEMO_C_VERSION}
 		SOVERSION ${OMEMO_C_VERSION_MAJOR}
