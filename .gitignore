@@ -18,3 +18,5 @@ Thumbs.db
 core
 *.log
 *.zip
+/compile_commands.json
+
