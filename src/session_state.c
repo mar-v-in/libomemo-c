@@ -827,7 +827,7 @@ int session_state_deserialize_protobuf(session_state **state, Textsecure__Sessio
     }
 
     if(session_structure->senderchain) {
-        session_state_deserialize_protobuf_sender_chain(
+        result = session_state_deserialize_protobuf_sender_chain(
                 result_state->session_version,
                 &result_state->sender_chain, session_structure->senderchain,
                 global_context);
