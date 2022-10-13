@@ -150,7 +150,7 @@ vpool_insert(struct vpool *pool, size_t where, void *data, size_t datsize)
 		where = pool->v_off;
 
 	ret = (char *)pool->v_buf + where;
-	if (pool->v_off - where > 0)
+	if (pool->v_off > where)
 		memmove(ret + datsize, ret, pool->v_off - where);
 	memcpy(ret, data, datsize);
 	pool->v_off += datsize;
@@ -179,7 +179,7 @@ vpool_expand(struct vpool *pool, size_t where, size_t size)
 		where = pool->v_off;
 
 	ret = (char *)pool->v_buf + where;
-	if (pool->v_off - where > 0)
+	if (pool->v_off > where)
 		memmove(ret + size, ret, pool->v_off - where);
 	pool->v_off += size;
 	pool->v_lasterr = 0;
