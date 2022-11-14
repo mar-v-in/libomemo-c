@@ -241,7 +241,11 @@ int session_builder_process_pre_key_bundle(session_builder *builder, session_pre
         signal_buffer *signature = session_pre_key_bundle_get_signed_pre_key_signature(bundle);
 
         signal_buffer *serialized_signed_pre_key = 0;
-        result = ec_public_key_serialize(&serialized_signed_pre_key, signed_pre_key);
+        if (session_builder_get_version(builder) < 4) {
+            result = ec_public_key_serialize(&serialized_signed_pre_key, signed_pre_key);
+        } else {
+            result = ec_public_key_serialize_omemo(&serialized_signed_pre_key, signed_pre_key);
+        }
         if(result < 0) {
             goto complete;
         }

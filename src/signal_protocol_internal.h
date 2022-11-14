@@ -68,6 +68,8 @@ int signal_constant_memcmp(const void *s1, const void *s2, size_t n);
  */
 
 int ec_public_key_serialize_protobuf(ProtobufCBinaryData *buffer, const ec_public_key *key);
+int ec_public_key_serialize_protobuf_ed(ProtobufCBinaryData *buffer, const ec_public_key *key);
+int ec_public_key_serialize_protobuf_mont(ProtobufCBinaryData *buffer, const ec_public_key *key);
 int ec_private_key_serialize_protobuf(ProtobufCBinaryData *buffer, const ec_private_key *key);
 
 int ratchet_chain_key_get_key_protobuf(const ratchet_chain_key *chain_key, ProtobufCBinaryData *buffer);

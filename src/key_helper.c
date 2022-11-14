@@ -211,7 +211,9 @@ int signal_protocol_key_helper_generate_signed_pre_key(session_signed_pre_key **
     session_signed_pre_key *result_signed_pre_key = 0;
     ec_key_pair *ec_pair = 0;
     signal_buffer *public_buf = 0;
+    signal_buffer *public_omemo_buf = 0;
     signal_buffer *signature_buf = 0;
+    signal_buffer *signature_omemo_buf = 0;
     ec_public_key *public_key = 0;
     ec_private_key *private_key = 0;
 
@@ -227,6 +229,10 @@ int signal_protocol_key_helper_generate_signed_pre_key(session_signed_pre_key **
     if(result < 0) {
         goto complete;
     }
+    result = ec_public_key_serialize_omemo(&public_omemo_buf, public_key);
+    if(result < 0) {
+        goto complete;
+    }
 
     private_key = ratchet_identity_key_pair_get_private(identity_key_pair);
 
@@ -238,17 +244,81 @@ int signal_protocol_key_helper_generate_signed_pre_key(session_signed_pre_key **
     if(result < 0) {
         goto complete;
     }
+    result = curve_calculate_signature(global_context,
+             &signature_omemo_buf,
+             private_key,
+             signal_buffer_data(public_omemo_buf),
+             signal_buffer_len(public_omemo_buf));
+    if(result < 0) {
+        goto complete;
+    }
 
     result = session_signed_pre_key_create(&result_signed_pre_key,
             signed_pre_key_id, timestamp, ec_pair,
             signal_buffer_data(signature_buf),
-            signal_buffer_len(signature_buf));
+            signal_buffer_len(signature_buf),
+            signal_buffer_data(signature_omemo_buf),
+            signal_buffer_len(signature_omemo_buf));
 
 complete:
     SIGNAL_UNREF(ec_pair);
     signal_buffer_free(public_buf);
+    signal_buffer_free(public_omemo_buf);
     signal_buffer_free(signature_buf);
+    signal_buffer_free(signature_omemo_buf);
     if(result >= 0) {
+        *signed_pre_key = result_signed_pre_key;
+    }
+    return result;
+}
+
+int signal_protocol_key_helper_upgrade_signed_pre_key(session_signed_pre_key **signed_pre_key,
+        const ratchet_identity_key_pair *identity_key_pair,
+        signal_context *global_context)
+{
+    int result = 0;
+    session_signed_pre_key *result_signed_pre_key = 0;
+    signal_buffer *public_omemo_buf = 0;
+    signal_buffer *signature_omemo_buf = 0;
+    ec_public_key *public_key = 0;
+    ec_private_key *private_key = 0;
+
+    assert(global_context);
+    if (session_signed_pre_key_get_signature_omemo_len(*signed_pre_key) > 0) {
+        return result;
+    }
+
+    public_key = ec_key_pair_get_public(session_signed_pre_key_get_key_pair(*signed_pre_key));
+    result = ec_public_key_serialize_omemo(&public_omemo_buf, public_key);
+    if(result < 0) {
+        goto complete;
+    }
+
+    private_key = ratchet_identity_key_pair_get_private(identity_key_pair);
+
+    result = curve_calculate_signature(global_context,
+             &signature_omemo_buf,
+             private_key,
+             signal_buffer_data(public_omemo_buf),
+             signal_buffer_len(public_omemo_buf));
+    if(result < 0) {
+        goto complete;
+    }
+
+    result = session_signed_pre_key_create(&result_signed_pre_key,
+            session_signed_pre_key_get_id(*signed_pre_key),
+            session_signed_pre_key_get_timestamp(*signed_pre_key),
+            session_signed_pre_key_get_key_pair(*signed_pre_key),
+            session_signed_pre_key_get_signature(*signed_pre_key),
+            session_signed_pre_key_get_signature_len(*signed_pre_key),
+            signal_buffer_data(signature_omemo_buf),
+            signal_buffer_len(signature_omemo_buf));
+
+complete:
+    signal_buffer_free(public_omemo_buf);
+    signal_buffer_free(signature_omemo_buf);
+    if(result >= 0) {
+        SIGNAL_UNREF(*signed_pre_key);
         *signed_pre_key = result_signed_pre_key;
     }
     return result;

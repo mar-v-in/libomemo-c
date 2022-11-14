@@ -162,12 +162,25 @@ START_TEST(test_basic_pre_key_v3)
             ec_key_pair_get_public(bob_signed_pre_key_pair));
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *bob_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo,
+                                     ec_key_pair_get_public(bob_signed_pre_key_pair));
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *bob_signed_pre_key_signature = 0;
     result = curve_calculate_signature(global_context,
             &bob_signed_pre_key_signature,
             ratchet_identity_key_pair_get_private(bob_identity_key_pair),
             signal_buffer_data(bob_signed_pre_key_public_serialized),
             signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *bob_signed_pre_key_signature_omemo = 0;
+    result = curve_calculate_signature(global_context,
+                                       &bob_signed_pre_key_signature_omemo,
+                                       ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+                                       signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+                                       signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *bob_pre_key = 0;
@@ -243,7 +256,9 @@ START_TEST(test_basic_pre_key_v3)
             22, time(0),
             bob_signed_pre_key_pair,
             signal_buffer_data(bob_signed_pre_key_signature),
-            signal_buffer_len(bob_signed_pre_key_signature));
+            signal_buffer_len(bob_signed_pre_key_signature),
+            signal_buffer_data(bob_signed_pre_key_signature_omemo),
+            signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);
@@ -390,7 +405,9 @@ START_TEST(test_basic_pre_key_v3)
             23, time(0),
             bob_signed_pre_key_pair,
             signal_buffer_data(bob_signed_pre_key_signature),
-            signal_buffer_len(bob_signed_pre_key_signature));
+            signal_buffer_len(bob_signed_pre_key_signature),
+            signal_buffer_data(bob_signed_pre_key_signature_omemo),
+            signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);
@@ -527,12 +544,25 @@ START_TEST(test_basic_pre_key_omemo)
                                      ec_key_pair_get_public(bob_signed_pre_key_pair));
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *bob_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo,
+                                     ec_key_pair_get_public(bob_signed_pre_key_pair));
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *bob_signed_pre_key_signature = 0;
     result = curve_calculate_signature(global_context,
                                        &bob_signed_pre_key_signature,
                                        ratchet_identity_key_pair_get_private(bob_identity_key_pair),
                                        signal_buffer_data(bob_signed_pre_key_public_serialized),
                                        signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *bob_signed_pre_key_signature_omemo = 0;
+    result = curve_calculate_signature(global_context,
+                                       &bob_signed_pre_key_signature_omemo,
+                                       ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+                                       signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+                                       signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *bob_pre_key = 0;
@@ -543,8 +573,8 @@ START_TEST(test_basic_pre_key_omemo)
                                            ec_key_pair_get_public(bob_pre_key_pair),
                                            22, /* signed pre key ID */
                                            ec_key_pair_get_public(bob_signed_pre_key_pair),
-                                           signal_buffer_data(bob_signed_pre_key_signature),
-                                           signal_buffer_len(bob_signed_pre_key_signature),
+                                           signal_buffer_data(bob_signed_pre_key_signature_omemo),
+                                           signal_buffer_len(bob_signed_pre_key_signature_omemo),
                                            ratchet_identity_key_pair_get_public(bob_identity_key_pair));
     ck_assert_int_eq(result, 0);
 
@@ -611,7 +641,9 @@ START_TEST(test_basic_pre_key_omemo)
                                            22, time(0),
                                            bob_signed_pre_key_pair,
                                            signal_buffer_data(bob_signed_pre_key_signature),
-                                           signal_buffer_len(bob_signed_pre_key_signature));
+                                           signal_buffer_len(bob_signed_pre_key_signature),
+                                           signal_buffer_data(bob_signed_pre_key_signature_omemo),
+                                           signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);
@@ -701,6 +733,7 @@ START_TEST(test_basic_pre_key_omemo)
     SIGNAL_UNREF(bob_signed_pre_key_pair); bob_signed_pre_key_pair = 0;
     SIGNAL_UNREF(bob_identity_key_pair); bob_identity_key_pair = 0;
     signal_buffer_free(bob_signed_pre_key_signature); bob_signed_pre_key_signature = 0;
+    signal_buffer_free(bob_signed_pre_key_signature_omemo); bob_signed_pre_key_signature_omemo = 0;
     SIGNAL_UNREF(bob_pre_key_record); bob_pre_key_record = 0;
     SIGNAL_UNREF(bob_signed_pre_key_record); bob_signed_pre_key_record = 0;
 
@@ -727,11 +760,22 @@ START_TEST(test_basic_pre_key_omemo)
                                      ec_key_pair_get_public(bob_signed_pre_key_pair));
     ck_assert_int_eq(result, 0);
 
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo,
+                                     ec_key_pair_get_public(bob_signed_pre_key_pair));
+    ck_assert_int_eq(result, 0);
+
     result = curve_calculate_signature(global_context,
                                        &bob_signed_pre_key_signature,
                                        ratchet_identity_key_pair_get_private(bob_identity_key_pair),
                                        signal_buffer_data(bob_signed_pre_key_public_serialized),
                                        signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    result = curve_calculate_signature(global_context,
+                                       &bob_signed_pre_key_signature_omemo,
+                                       ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+                                       signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+                                       signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     result = session_pre_key_bundle_create(&bob_pre_key,
@@ -741,8 +785,8 @@ START_TEST(test_basic_pre_key_omemo)
                                            ec_key_pair_get_public(bob_pre_key_pair),
                                            23, /* signed pre key ID */
                                            ec_key_pair_get_public(bob_signed_pre_key_pair),
-                                           signal_buffer_data(bob_signed_pre_key_signature),
-                                           signal_buffer_len(bob_signed_pre_key_signature),
+                                           signal_buffer_data(bob_signed_pre_key_signature_omemo),
+                                           signal_buffer_len(bob_signed_pre_key_signature_omemo),
                                            ratchet_identity_key_pair_get_public(bob_identity_key_pair));
     ck_assert_int_eq(result, 0);
 
@@ -761,7 +805,9 @@ START_TEST(test_basic_pre_key_omemo)
                                            23, time(0),
                                            bob_signed_pre_key_pair,
                                            signal_buffer_data(bob_signed_pre_key_signature),
-                                           signal_buffer_len(bob_signed_pre_key_signature));
+                                           signal_buffer_len(bob_signed_pre_key_signature),
+                                           signal_buffer_data(bob_signed_pre_key_signature_omemo),
+                                           signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);
@@ -1026,12 +1072,25 @@ START_TEST(test_repeat_bundle_message_v2)
             ec_key_pair_get_public(bob_signed_pre_key_pair));
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *bob_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo,
+            ec_key_pair_get_public(bob_signed_pre_key_pair));
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *bob_signed_pre_key_signature = 0;
     result = curve_calculate_signature(global_context,
             &bob_signed_pre_key_signature,
             ratchet_identity_key_pair_get_private(bob_identity_key_pair),
             signal_buffer_data(bob_signed_pre_key_public_serialized),
             signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *bob_signed_pre_key_signature_omemo = 0;
+    result = curve_calculate_signature(global_context,
+            &bob_signed_pre_key_signature_omemo,
+            ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+            signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+            signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *bob_pre_key = 0;
@@ -1059,7 +1118,9 @@ START_TEST(test_repeat_bundle_message_v2)
             22, time(0),
             bob_signed_pre_key_pair,
             signal_buffer_data(bob_signed_pre_key_signature),
-            signal_buffer_len(bob_signed_pre_key_signature));
+            signal_buffer_len(bob_signed_pre_key_signature),
+            signal_buffer_data(bob_signed_pre_key_signature_omemo),
+            signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);
@@ -1123,12 +1184,25 @@ START_TEST(test_repeat_bundle_message_v3)
             ec_key_pair_get_public(bob_signed_pre_key_pair));
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *bob_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo,
+            ec_key_pair_get_public(bob_signed_pre_key_pair));
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *bob_signed_pre_key_signature = 0;
     result = curve_calculate_signature(global_context,
             &bob_signed_pre_key_signature,
             ratchet_identity_key_pair_get_private(bob_identity_key_pair),
             signal_buffer_data(bob_signed_pre_key_public_serialized),
             signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *bob_signed_pre_key_signature_omemo = 0;
+    result = curve_calculate_signature(global_context,
+            &bob_signed_pre_key_signature_omemo,
+            ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+            signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+            signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *bob_pre_key = 0;
@@ -1159,7 +1233,9 @@ START_TEST(test_repeat_bundle_message_v3)
             22, time(0),
             bob_signed_pre_key_pair,
             signal_buffer_data(bob_signed_pre_key_signature),
-            signal_buffer_len(bob_signed_pre_key_signature));
+            signal_buffer_len(bob_signed_pre_key_signature),
+            signal_buffer_data(bob_signed_pre_key_signature_omemo),
+            signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);
@@ -1328,12 +1404,25 @@ START_TEST(test_bad_message_bundle)
             ec_key_pair_get_public(bob_signed_pre_key_pair));
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *bob_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo,
+            ec_key_pair_get_public(bob_signed_pre_key_pair));
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *bob_signed_pre_key_signature = 0;
     result = curve_calculate_signature(global_context,
             &bob_signed_pre_key_signature,
             ratchet_identity_key_pair_get_private(bob_identity_key_pair),
             signal_buffer_data(bob_signed_pre_key_public_serialized),
             signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *bob_signed_pre_key_signature_omemo = 0;
+    result = curve_calculate_signature(global_context,
+            &bob_signed_pre_key_signature_omemo,
+            ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+            signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+            signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *bob_pre_key = 0;
@@ -1364,7 +1453,9 @@ START_TEST(test_bad_message_bundle)
             22, time(0),
             bob_signed_pre_key_pair,
             signal_buffer_data(bob_signed_pre_key_signature),
-            signal_buffer_len(bob_signed_pre_key_signature));
+            signal_buffer_len(bob_signed_pre_key_signature),
+            signal_buffer_data(bob_signed_pre_key_signature_omemo),
+            signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);
@@ -1492,12 +1583,25 @@ START_TEST(test_optional_one_time_pre_key)
             ec_key_pair_get_public(bob_signed_pre_key_pair));
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *bob_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo,
+            ec_key_pair_get_public(bob_signed_pre_key_pair));
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *bob_signed_pre_key_signature = 0;
     result = curve_calculate_signature(global_context,
             &bob_signed_pre_key_signature,
             ratchet_identity_key_pair_get_private(bob_identity_key_pair),
             signal_buffer_data(bob_signed_pre_key_public_serialized),
             signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *bob_signed_pre_key_signature_omemo = 0;
+    result = curve_calculate_signature(global_context,
+            &bob_signed_pre_key_signature_omemo,
+            ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+            signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+            signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *bob_pre_key = 0;
@@ -1568,7 +1672,9 @@ START_TEST(test_optional_one_time_pre_key)
             22, time(0),
             bob_signed_pre_key_pair,
             signal_buffer_data(bob_signed_pre_key_signature),
-            signal_buffer_len(bob_signed_pre_key_signature));
+            signal_buffer_len(bob_signed_pre_key_signature),
+            signal_buffer_data(bob_signed_pre_key_signature_omemo),
+            signal_buffer_len(bob_signed_pre_key_signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(bob_store, bob_signed_pre_key_record);

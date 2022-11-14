@@ -14,7 +14,6 @@ include_directories(
 set(protobuf_SRCS
 	LocalStorageProtocol.pb-c.c
 	WhisperTextProtocol.pb-c.c
-	FingerprintProtocol.pb-c.c
 	OMEMO.pb-c.c
 )
 
@@ -52,14 +51,6 @@ set(omemo_SRCS
 	sender_key_state.h
 	sender_key_record.c
 	sender_key_record.h
-	group_session_builder.c
-	group_session_builder.h
-	group_cipher.c
-	group_cipher.h
-	fingerprint.c
-	fingerprint.h
-	device_consistency.c
-	device_consistency.h
 )
 
 add_subdirectory(curve25519)
@@ -99,10 +90,6 @@ INSTALL(
 	sender_key.h
 	sender_key_state.h
 	sender_key_record.h
-	group_session_builder.h
-	group_cipher.h
-	fingerprint.h
-	device_consistency.h
 	DESTINATION ${INCLUDE_INSTALL_DIR}/omemo
 )
 

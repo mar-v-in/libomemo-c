@@ -197,6 +197,7 @@ int session_cipher_encrypt(session_cipher *cipher,
             chain_key_index, previous_counter,
             ciphertext_data, ciphertext_len,
             local_identity_key, remote_identity_key,
+            session_state_get_local_is_alice(state),
             cipher->global_context);
     if(result < 0) {
         goto complete;
@@ -525,6 +526,7 @@ static int session_cipher_decrypt_from_state_and_signal_message(session_cipher *
     result = signal_message_verify_mac(ciphertext,
             remote_identity_key, local_identity_key,
             message_keys.mac_key, sizeof(message_keys.mac_key),
+            !session_state_get_local_is_alice(state),
             cipher->global_context);
     if(result != 1) {
         if(result == 0) {

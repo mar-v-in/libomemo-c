@@ -83,6 +83,9 @@ const struct ratchet_kdf_infos *session_state_get_kdf_infos(const session_state 
 void session_state_set_alice_base_key(session_state *state, ec_public_key *key);
 ec_public_key *session_state_get_alice_base_key(const session_state *state);
 
+void session_state_set_local_is_alice(session_state *state, uint8_t local_is_alice);
+uint8_t session_state_get_local_is_alice(const session_state *state);
+
 void session_state_destroy(signal_type_base *type);
 
 #ifdef __cplusplus

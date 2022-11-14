@@ -65,6 +65,7 @@ START_TEST(test_serialize_signal_message)
             1, /* previous counter */
             (uint8_t *)ciphertext, sizeof(ciphertext) - 1,
             sender_identity_key, receiver_identity_key,
+            1,
             global_context);
     ck_assert_int_eq(result, 0);
 
@@ -82,7 +83,7 @@ START_TEST(test_serialize_signal_message)
     /* Exercise the MAC verification code */
     result = signal_message_verify_mac(result_message,
             sender_identity_key, receiver_identity_key,
-            mac_key, sizeof(mac_key), global_context);
+            mac_key, sizeof(mac_key), 1, global_context);
     ck_assert_int_eq(result, 1);
 
     /* Cleanup */
@@ -115,6 +116,7 @@ START_TEST(test_serialize_signal_message_omemo)
                                    1, /* previous counter */
                                    (uint8_t *)ciphertext, sizeof(ciphertext) - 1,
                                    sender_identity_key, receiver_identity_key,
+                                   1,
                                    global_context);
     ck_assert_int_eq(result, 0);
 
@@ -132,7 +134,7 @@ START_TEST(test_serialize_signal_message_omemo)
     /* Exercise the MAC verification code */
     result = signal_message_verify_mac(result_message,
                                        sender_identity_key, receiver_identity_key,
-                                       mac_key, sizeof(mac_key), global_context);
+                                       mac_key, sizeof(mac_key), 1, global_context);
     ck_assert_int_eq(result, 1);
 
     /* Cleanup */
@@ -168,6 +170,7 @@ START_TEST(test_serialize_pre_key_signal_message)
             1, /* previous counter */
             (uint8_t *)ciphertext, sizeof(ciphertext) - 1,
             sender_identity_key, receiver_identity_key,
+            1,
             global_context);
     ck_assert_int_eq(result, 0);
 
@@ -261,6 +264,7 @@ START_TEST(test_serialize_pre_key_signal_message_omemo)
                                    1, /* previous counter */
                                    (uint8_t *)ciphertext, sizeof(ciphertext) - 1,
                                    sender_identity_key, receiver_identity_key,
+                                   1,
                                    global_context);
     ck_assert_int_eq(result, 0);
 

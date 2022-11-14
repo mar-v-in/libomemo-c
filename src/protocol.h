@@ -33,6 +33,7 @@ int signal_message_create(signal_message **message, uint8_t message_version,
         ec_public_key *sender_ratchet_key, uint32_t counter, uint32_t previous_counter,
         const uint8_t *ciphertext, size_t ciphertext_len,
         ec_public_key *sender_identity_key, ec_public_key *receiver_identity_key,
+        uint8_t sender_is_alice,
         signal_context *global_context);
 
 int signal_message_deserialize(signal_message **message, const uint8_t *data, size_t len,
@@ -59,6 +60,7 @@ int signal_message_verify_mac(signal_message *message,
         ec_public_key *sender_identity_key,
         ec_public_key *receiver_identity_key,
         const uint8_t *mac_key, size_t mac_key_len,
+        uint8_t sender_is_alice,
         signal_context *global_context);
 
 int signal_message_is_legacy(const uint8_t *data, size_t len);

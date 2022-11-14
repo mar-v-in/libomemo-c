@@ -54,10 +54,54 @@ int curve_internal_fast_tests(int silent)
 
 int curve_decode_point(ec_public_key **public_key, const uint8_t *key_data, size_t key_len, signal_context *global_context)
 {
+    if (key_len == DJB_KEY_LEN) {
+        // Key is ed25519 public key point
+        return curve_decode_point_ed(public_key, key_data, key_len, global_context);
+    } else if (key_len == DJB_KEY_LEN + 1 && key_data[0] == DJB_TYPE) {
+        // Key is curve25519 public key point prefixed with DJB_TYPE(5)
+        return curve_decode_point_mont(public_key, key_data, key_len, global_context);
+    } else if (key_len == DJB_KEY_LEN + 1) {
+        signal_log(global_context, SG_LOG_ERROR, "Invalid key type: %d", key_data[0]);
+        return SG_ERR_INVALID_KEY;
+    } else {
+        signal_log(global_context, SG_LOG_ERROR, "Invalid key length: %d", key_len);
+        return SG_ERR_INVALID_KEY;
+    }
+}
+
+int curve_decode_point_ed(ec_public_key **public_key, const uint8_t *key_data, size_t key_len, signal_context *global_context)
+{
+    ec_public_key *key = 0;
+
+    if (key_len != DJB_KEY_LEN) {
+        return SG_ERR_INVALID_KEY;
+    }
+
+    key = malloc(sizeof(ec_public_key));
+    if(!key) {
+        return SG_ERR_NOMEM;
+    }
+
+    SIGNAL_INIT(key, ec_public_key_destroy);
+
+    memcpy(key->ed_data, key_data, DJB_KEY_LEN);
+    fe y, u;
+    fe_frombytes(y, key->ed_data);
+    fe_edy_to_montx(u, y);
+    fe_tobytes(key->data, u);
+    key->has_ed = 1;
+
+    *public_key = key;
+
+    return 0;
+}
+
+int curve_decode_point_mont(ec_public_key **public_key, const uint8_t *key_data, size_t key_len, signal_context *global_context)
+{
     ec_public_key *key = 0;
 
     if (key_len == DJB_KEY_LEN) {
-        // Key is ed25519 public key point
+        // Key is curve25519 public key point
     } else if (key_len == DJB_KEY_LEN + 1 && key_data[0] == DJB_TYPE) {
         // Key is curve25519 public key point prefixed with DJB_TYPE(5)
     } else if (key_len == DJB_KEY_LEN + 1) {
@@ -75,17 +119,12 @@ int curve_decode_point(ec_public_key **public_key, const uint8_t *key_data, size
 
     SIGNAL_INIT(key, ec_public_key_destroy);
 
-    if (key_len == DJB_KEY_LEN) { // Ed25519
-        memcpy(key->ed_data, key_data, DJB_KEY_LEN);
-        fe y, u;
-        fe_frombytes(y, key->ed_data);
-        fe_edy_to_montx(u, y);
-        fe_tobytes(key->data, u);
-        key->has_ed = 1;
-    } else { // Curve25519 with prefix
+    if (key_len == DJB_KEY_LEN + 1) {
         memcpy(key->data, key_data + 1, DJB_KEY_LEN);
-        key->has_ed = 0;
+    } else {
+        memcpy(key->data, key_data, DJB_KEY_LEN);
     }
+    key->has_ed = 0;
 
     *public_key = key;
 
@@ -172,6 +211,24 @@ int ec_public_key_serialize(signal_buffer **buffer, const ec_public_key *key)
     return 0;
 }
 
+int ec_public_key_serialize_omemo(signal_buffer **buffer, const ec_public_key *key)
+{
+    signal_buffer *buf = 0;
+
+    if(!key) {
+        return SG_ERR_INVAL;
+    }
+
+    buf = ec_public_key_get_mont(key);
+    if(!buf) {
+        return SG_ERR_NOMEM;
+    }
+
+    *buffer = buf;
+
+    return 0;
+}
+
 int ec_public_key_serialize_protobuf(ProtobufCBinaryData *buffer, const ec_public_key *key)
 {
     size_t len = 0;
@@ -188,6 +245,55 @@ int ec_public_key_serialize_protobuf(ProtobufCBinaryData *buffer, const ec_publi
 
     data[0] = DJB_TYPE;
     memcpy(data + 1, key->data, DJB_KEY_LEN);
+
+    buffer->data = data;
+    buffer->len = len;
+    return 0;
+}
+
+int ec_public_key_serialize_protobuf_mont(ProtobufCBinaryData *buffer, const ec_public_key *key)
+{
+    size_t len = 0;
+    uint8_t *data = 0;
+
+    assert(buffer);
+    assert(key);
+
+    len = sizeof(uint8_t) * (DJB_KEY_LEN);
+    data = malloc(len);
+    if(!data) {
+        return SG_ERR_NOMEM;
+    }
+
+    memcpy(data, key->data, DJB_KEY_LEN);
+
+    buffer->data = data;
+    buffer->len = len;
+    return 0;
+}
+
+int ec_public_key_serialize_protobuf_ed(ProtobufCBinaryData *buffer, const ec_public_key *key)
+{
+    size_t len = 0;
+    uint8_t *data = 0;
+
+    assert(buffer);
+    assert(key);
+
+    len = sizeof(uint8_t) * (DJB_KEY_LEN);
+    data = malloc(len);
+    if(!data) {
+        return SG_ERR_NOMEM;
+    }
+
+    if (key->has_ed) {
+        memcpy(data, key->ed_data, DJB_KEY_LEN);
+    } else {
+        fe y, u;
+        fe_frombytes(u, key->data);
+        fe_montx_to_edy(y, u);
+        fe_tobytes(data, y);
+    }
 
     buffer->data = data;
     buffer->len = len;

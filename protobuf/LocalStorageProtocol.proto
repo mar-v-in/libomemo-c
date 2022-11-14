@@ -59,6 +59,8 @@ message SessionStructure {
 
     optional bool needsRefresh = 12;
     optional bytes aliceBaseKey = 13;
+
+    optional bool localIsAlice = 14;
 }
 
 message RecordStructure {
@@ -78,6 +80,7 @@ message SignedPreKeyRecordStructure {
     optional bytes   privateKey = 3;
     optional bytes   signature  = 4;
     optional fixed64 timestamp  = 5;
+    optional bytes   signature_omemo = 6;
 }
 
 message IdentityKeyPairStructure {

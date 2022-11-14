@@ -99,6 +99,10 @@ int signal_protocol_key_helper_generate_signed_pre_key(session_signed_pre_key **
         uint64_t timestamp,
         signal_context *global_context);
 
+int signal_protocol_key_helper_upgrade_signed_pre_key(session_signed_pre_key **signed_pre_key,
+        const ratchet_identity_key_pair *identity_key_pair,
+        signal_context *global_context);
+
 /*
  * Generate a sender signing key pair
  *

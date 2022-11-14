@@ -20,7 +20,8 @@ struct session_signed_pre_key {
     ec_key_pair *key_pair;
     uint64_t timestamp;
     size_t signature_len;
-    uint8_t signature[];
+    size_t signature_omemo_len;
+    uint8_t signatures[];
 };
 
 struct session_pre_key_bundle {
@@ -214,19 +215,21 @@ void session_pre_key_destroy(signal_type_base *type)
 
 int session_signed_pre_key_create(session_signed_pre_key **pre_key,
         uint32_t id, uint64_t timestamp, ec_key_pair *key_pair,
-        const uint8_t *signature, size_t signature_len)
+        const uint8_t *signature, size_t signature_len,
+        const uint8_t *signature_omemo, size_t signature_omemo_len)
 {
     session_signed_pre_key *result = 0;
 
     assert(key_pair);
     assert(signature);
     assert(signature_len > 0);
+    assert(signature_omemo_len == 0 || signature_omemo);
 
-    if(signature_len > (SIZE_MAX - sizeof(session_signed_pre_key)) / sizeof(uint8_t)) {
+    if(signature_len + signature_omemo_len > (SIZE_MAX - sizeof(session_signed_pre_key)) / sizeof(uint8_t)) {
         return SG_ERR_NOMEM;
     }
 
-    result = malloc(sizeof(session_signed_pre_key) + (sizeof(uint8_t) * signature_len));
+    result = malloc(sizeof(session_signed_pre_key) + (sizeof(uint8_t) * signature_len) + (sizeof(uint8_t) * signature_omemo_len));
     if(!result) {
         return SG_ERR_NOMEM;
     }
@@ -240,8 +243,12 @@ int session_signed_pre_key_create(session_signed_pre_key **pre_key,
     result->key_pair = key_pair;
 
     result->signature_len = signature_len;
+    result->signature_omemo_len = signature_omemo_len;
 
-    memcpy(result->signature, signature, signature_len);
+    memcpy(result->signatures, signature, signature_len);
+    if (signature_omemo_len > 0) {
+        memcpy(result->signatures + signature_len, signature_omemo, signature_omemo_len);
+    }
 
     *pre_key = result;
     return 0;
@@ -255,6 +262,7 @@ int session_signed_pre_key_serialize(signal_buffer **buffer, const session_signe
     signal_buffer *public_buf = 0;
     signal_buffer *private_buf = 0;
     signal_buffer *signature_buf = 0;
+    signal_buffer *signature_omemo_buf = 0;
     signal_buffer *result_buf = 0;
     ec_public_key *public_key = 0;
     ec_private_key *private_key = 0;
@@ -273,8 +281,14 @@ int session_signed_pre_key_serialize(signal_buffer **buffer, const session_signe
         goto complete;
     }
 
-    signature_buf = signal_buffer_create(pre_key->signature, pre_key->signature_len);
+    signature_buf = signal_buffer_create(pre_key->signatures, pre_key->signature_len);
     if(!signature_buf) {
+        result = SG_ERR_NOMEM;
+        goto complete;
+    }
+
+    signature_omemo_buf = signal_buffer_create(pre_key->signatures+pre_key->signature_len, pre_key->signature_omemo_len);
+    if(!signature_omemo_buf) {
         result = SG_ERR_NOMEM;
         goto complete;
     }
@@ -296,6 +310,10 @@ int session_signed_pre_key_serialize(signal_buffer **buffer, const session_signe
     record.has_signature = 1;
     record.signature.data = signal_buffer_data(signature_buf);
     record.signature.len = signal_buffer_len(signature_buf);
+
+    record.has_signature_omemo = 1;
+    record.signature_omemo.data = signal_buffer_data(signature_omemo_buf);
+    record.signature_omemo.len = signal_buffer_len(signature_omemo_buf);
 
     len = textsecure__signed_pre_key_record_structure__get_packed_size(&record);
 
@@ -323,6 +341,9 @@ complete:
     }
     if(signature_buf) {
         signal_buffer_free(signature_buf);
+    }
+    if(signature_omemo_buf) {
+        signal_buffer_free(signature_omemo_buf);
     }
     if(result >= 0) {
         *buffer = result_buf;
@@ -367,9 +388,17 @@ int session_signed_pre_key_deserialize(session_signed_pre_key **pre_key, const u
         goto complete;
     }
 
-    result = session_signed_pre_key_create(&result_pre_key,
-            record->id, record->timestamp, key_pair,
-            record->signature.data, record->signature.len);
+    if (record->has_signature_omemo) {
+        result = session_signed_pre_key_create(&result_pre_key,
+                                               record->id, record->timestamp, key_pair,
+                                               record->signature.data, record->signature.len,
+                                               record->signature_omemo.data, record->signature_omemo.len);
+    } else {
+        result = session_signed_pre_key_create(&result_pre_key,
+                                               record->id, record->timestamp, key_pair,
+                                               record->signature.data, record->signature.len,
+                                               NULL, 0);
+    }
     if(result < 0) {
         goto complete;
     }
@@ -410,12 +439,22 @@ ec_key_pair *session_signed_pre_key_get_key_pair(const session_signed_pre_key *p
 
 const uint8_t *session_signed_pre_key_get_signature(const session_signed_pre_key *pre_key)
 {
-    return pre_key->signature;
+    return pre_key->signatures;
 }
 
 size_t session_signed_pre_key_get_signature_len(const session_signed_pre_key *pre_key)
 {
     return pre_key->signature_len;
+}
+
+const uint8_t *session_signed_pre_key_get_signature_omemo(const session_signed_pre_key *pre_key)
+{
+    return pre_key->signatures + pre_key->signature_len;
+}
+
+size_t session_signed_pre_key_get_signature_omemo_len(const session_signed_pre_key *pre_key)
+{
+    return pre_key->signature_omemo_len;
 }
 
 void session_signed_pre_key_destroy(signal_type_base *type)

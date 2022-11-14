@@ -72,6 +72,7 @@ static int signal_message_get_mac(signal_buffer **buffer,
         ec_public_key *receiver_identity_key,
         const uint8_t *mac_key, size_t mac_key_len,
         const uint8_t *serialized, size_t serialized_len,
+        uint8_t sender_is_alice,
         signal_context *global_context);
 
 static int pre_key_signal_message_serialize(signal_buffer **buffer, const pre_key_signal_message *message);
@@ -101,6 +102,7 @@ int signal_message_create(signal_message **message, uint8_t message_version,
         ec_public_key *sender_ratchet_key, uint32_t counter, uint32_t previous_counter,
         const uint8_t *ciphertext, size_t ciphertext_len,
         ec_public_key *sender_identity_key, ec_public_key *receiver_identity_key,
+        uint8_t sender_is_alice,
         signal_context *global_context)
 {
     int result = 0;
@@ -143,6 +145,7 @@ int signal_message_create(signal_message **message, uint8_t message_version,
             mac_key, mac_key_len,
             signal_buffer_data(message_buf),
             signal_buffer_len(message_buf),
+            sender_is_alice,
             global_context);
     if(result < 0) {
         goto complete;
@@ -249,7 +252,7 @@ static int signal_message_serialize_omemo(signal_buffer **buffer, const signal_m
     Omemo__OMEMOMessage message_structure = OMEMO__OMEMOMESSAGE__INIT;
     size_t len = 0;
 
-    result = ec_public_key_serialize_protobuf(&message_structure.dh_pub, message->sender_ratchet_key);
+    result = ec_public_key_serialize_protobuf_mont(&message_structure.dh_pub, message->sender_ratchet_key);
     if(result < 0) {
         goto complete;
     }
@@ -469,7 +472,7 @@ int signal_message_deserialize_omemo(signal_message **message, const uint8_t *da
     result_message->base_message.message_type = CIPHERTEXT_SIGNAL_TYPE;
     result_message->base_message.global_context = global_context;
 
-    result = curve_decode_point(&result_message->sender_ratchet_key, message_structure->dh_pub.data, message_structure->dh_pub.len, global_context);
+    result = curve_decode_point_mont(&result_message->sender_ratchet_key, message_structure->dh_pub.data, message_structure->dh_pub.len, global_context);
     if(result < 0) {
         goto complete;
     }
@@ -580,6 +583,7 @@ int signal_message_verify_mac(signal_message *message,
         ec_public_key *sender_identity_key,
         ec_public_key *receiver_identity_key,
         const uint8_t *mac_key, size_t mac_key_len,
+        uint8_t sender_is_alice,
         signal_context *global_context)
 {
     int result = 0;
@@ -617,6 +621,7 @@ int signal_message_verify_mac(signal_message *message,
             sender_identity_key, receiver_identity_key,
             mac_key, mac_key_len,
             serialized_message_data, serialized_message_len,
+            sender_is_alice,
             message->base_message.global_context);
     if(result < 0) {
         goto complete;
@@ -651,12 +656,13 @@ static int signal_message_get_mac(signal_buffer **buffer,
         ec_public_key *receiver_identity_key,
         const uint8_t *mac_key, size_t mac_key_len,
         const uint8_t *serialized, size_t serialized_len,
+        uint8_t sender_is_alice,
         signal_context *global_context)
 {
     int result = 0;
     void *hmac_context;
-    signal_buffer *sender_key_buffer = 0;
-    signal_buffer *receiver_key_buffer = 0;
+    signal_buffer *first_key_buffer = 0;
+    signal_buffer *second_key_buffer = 0;
     signal_buffer *full_mac_buffer = 0;
     signal_buffer *result_buf = 0;
     uint8_t *result_data = 0;
@@ -671,26 +677,42 @@ static int signal_message_get_mac(signal_buffer **buffer,
     }
 
     if(message_version >= 3) {
-        result = ec_public_key_serialize(&sender_key_buffer, sender_identity_key);
-        if(result < 0) {
+        if (message_version >= 4) {
+            if (sender_is_alice) {
+                first_key_buffer = ec_public_key_get_ed(sender_identity_key);
+            } else {
+                first_key_buffer = ec_public_key_get_ed(receiver_identity_key);
+            }
+        } else {
+            result = ec_public_key_serialize(&first_key_buffer, sender_identity_key);
+        }
+        if(first_key_buffer == 0 || result < 0) {
             goto complete;
         }
 
         result = signal_hmac_sha256_update(global_context, hmac_context,
-                signal_buffer_data(sender_key_buffer),
-                signal_buffer_len(sender_key_buffer));
+                signal_buffer_data(first_key_buffer),
+                signal_buffer_len(first_key_buffer));
         if(result < 0) {
             goto complete;
         }
 
-        result = ec_public_key_serialize(&receiver_key_buffer, receiver_identity_key);
-        if(result < 0) {
+        if (message_version >= 4) {
+            if (sender_is_alice) {
+                second_key_buffer = ec_public_key_get_ed(receiver_identity_key);
+            } else {
+                second_key_buffer = ec_public_key_get_ed(sender_identity_key);
+            }
+        } else {
+            result = ec_public_key_serialize(&second_key_buffer, receiver_identity_key);
+        }
+        if(second_key_buffer == 0 || result < 0) {
             goto complete;
         }
 
         result = signal_hmac_sha256_update(global_context, hmac_context,
-                signal_buffer_data(receiver_key_buffer),
-                signal_buffer_len(receiver_key_buffer));
+                signal_buffer_data(second_key_buffer),
+                signal_buffer_len(second_key_buffer));
         if(result < 0) {
             goto complete;
         }
@@ -720,8 +742,8 @@ static int signal_message_get_mac(signal_buffer **buffer,
 
 complete:
     signal_hmac_sha256_cleanup(global_context, hmac_context);
-    signal_buffer_free(sender_key_buffer);
-    signal_buffer_free(receiver_key_buffer);
+    signal_buffer_free(first_key_buffer);
+    signal_buffer_free(second_key_buffer);
     signal_buffer_free(full_mac_buffer);
     if(result >= 0) {
         *buffer = result_buf;
@@ -894,12 +916,12 @@ static int pre_key_signal_message_serialize_omemo(signal_buffer **buffer, const 
     message_structure.pk_id = message->pre_key_id;
     message_structure.spk_id = message->signed_pre_key_id;
 
-    result = ec_public_key_serialize_protobuf(&message_structure.ek, message->base_key);
+    result = ec_public_key_serialize_protobuf_mont(&message_structure.ek, message->base_key);
     if(result < 0) {
         goto complete;
     }
 
-    result = ec_public_key_serialize_protobuf(&message_structure.ik, message->identity_key);
+    result = ec_public_key_serialize_protobuf_ed(&message_structure.ik, message->identity_key);
     if(result < 0) {
         goto complete;
     }
@@ -1016,7 +1038,7 @@ int pre_key_signal_message_deserialize(pre_key_signal_message **message,
     }
 
     if(message_structure->has_basekey) {
-        result = curve_decode_point(&result_message->base_key,
+        result = curve_decode_point_mont(&result_message->base_key,
                 message_structure->basekey.data, message_structure->basekey.len, global_context);
         if(result < 0) {
             goto complete;
@@ -1107,7 +1129,7 @@ int pre_key_signal_message_deserialize_omemo(pre_key_signal_message **message,
 
     result_message->signed_pre_key_id = message_structure->spk_id;
 
-    result = curve_decode_point(&result_message->base_key, message_structure->ek.data, message_structure->ek.len, global_context);
+    result = curve_decode_point_mont(&result_message->base_key, message_structure->ek.data, message_structure->ek.len, global_context);
     if(result < 0) {
         goto complete;
     }

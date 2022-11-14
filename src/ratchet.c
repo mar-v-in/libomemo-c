@@ -1112,6 +1112,7 @@ int ratcheting_session_alice_initialize(
     session_state_set_local_identity_key(state, parameters->our_identity_key->public_key);
     session_state_set_sender_chain(state, sending_ratchet_key, sending_chain_key);
     session_state_set_root_key(state, sending_chain_root);
+    session_state_set_local_is_alice(state, 1);
 
 complete:
     vpool_final(&vp);
@@ -1239,6 +1240,7 @@ complete:
         session_state_set_local_identity_key(state, parameters->our_identity_key->public_key);
         session_state_set_sender_chain(state, parameters->our_ratchet_key, derived_chain);
         session_state_set_root_key(state, derived_root);
+        session_state_set_local_is_alice(state, 0);
     }
 
     vpool_final(&vp);

@@ -756,7 +756,7 @@ const ProtobufCMessageDescriptor textsecure__session_structure__pending_pre_key_
   (ProtobufCMessageInit) textsecure__session_structure__pending_pre_key__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor textsecure__session_structure__field_descriptors[13] =
+static const ProtobufCFieldDescriptor textsecure__session_structure__field_descriptors[14] =
 {
   {
     "sessionVersion",
@@ -914,10 +914,23 @@ static const ProtobufCFieldDescriptor textsecure__session_structure__field_descr
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "localIsAlice",
+    14,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_BOOL,
+    offsetof(Textsecure__SessionStructure, has_localisalice),
+    offsetof(Textsecure__SessionStructure, localisalice),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned textsecure__session_structure__field_indices_by_name[] = {
   12,   /* field[12] = aliceBaseKey */
   1,   /* field[1] = localIdentityPublic */
+  13,   /* field[13] = localIsAlice */
   10,   /* field[10] = localRegistrationId */
   11,   /* field[11] = needsRefresh */
   7,   /* field[7] = pendingKeyExchange */
@@ -933,7 +946,7 @@ static const unsigned textsecure__session_structure__field_indices_by_name[] = {
 static const ProtobufCIntRange textsecure__session_structure__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 13 }
+  { 0, 14 }
 };
 const ProtobufCMessageDescriptor textsecure__session_structure__descriptor =
 {
@@ -943,7 +956,7 @@ const ProtobufCMessageDescriptor textsecure__session_structure__descriptor =
   "Textsecure__SessionStructure",
   "textsecure",
   sizeof(Textsecure__SessionStructure),
-  13,
+  14,
   textsecure__session_structure__field_descriptors,
   textsecure__session_structure__field_indices_by_name,
   1,  textsecure__session_structure__number_ranges,
@@ -1065,7 +1078,7 @@ const ProtobufCMessageDescriptor textsecure__pre_key_record_structure__descripto
   (ProtobufCMessageInit) textsecure__pre_key_record_structure__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-static const ProtobufCFieldDescriptor textsecure__signed_pre_key_record_structure__field_descriptors[5] =
+static const ProtobufCFieldDescriptor textsecure__signed_pre_key_record_structure__field_descriptors[6] =
 {
   {
     "id",
@@ -1127,18 +1140,31 @@ static const ProtobufCFieldDescriptor textsecure__signed_pre_key_record_structur
     0,             /* flags */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
+  {
+    "signature_omemo",
+    6,
+    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_TYPE_BYTES,
+    offsetof(Textsecure__SignedPreKeyRecordStructure, has_signature_omemo),
+    offsetof(Textsecure__SignedPreKeyRecordStructure, signature_omemo),
+    NULL,
+    NULL,
+    0,             /* flags */
+    0,NULL,NULL    /* reserved1,reserved2, etc */
+  },
 };
 static const unsigned textsecure__signed_pre_key_record_structure__field_indices_by_name[] = {
   0,   /* field[0] = id */
   2,   /* field[2] = privateKey */
   1,   /* field[1] = publicKey */
   3,   /* field[3] = signature */
+  5,   /* field[5] = signature_omemo */
   4,   /* field[4] = timestamp */
 };
 static const ProtobufCIntRange textsecure__signed_pre_key_record_structure__number_ranges[1 + 1] =
 {
   { 1, 0 },
-  { 0, 5 }
+  { 0, 6 }
 };
 const ProtobufCMessageDescriptor textsecure__signed_pre_key_record_structure__descriptor =
 {
@@ -1148,7 +1174,7 @@ const ProtobufCMessageDescriptor textsecure__signed_pre_key_record_structure__de
   "Textsecure__SignedPreKeyRecordStructure",
   "textsecure",
   sizeof(Textsecure__SignedPreKeyRecordStructure),
-  5,
+  6,
   textsecure__signed_pre_key_record_structure__field_descriptors,
   textsecure__signed_pre_key_record_structure__field_indices_by_name,
   1,  textsecure__signed_pre_key_record_structure__number_ranges,

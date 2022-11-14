@@ -11,6 +11,10 @@ versions 0.3.0 and later.
   - HKDF info strings
   - Protocol buffer encoding
   - Signature scheme (uses XEd25519 instead of custom "Curve25519 signatures")
+  - Specification-compliant double ratchet
+  - Support for Ed25519 public keys
+  - Various serializations
+  - Removes unused functionality
 
 # Building libomemo-c
 
@@ -221,7 +225,7 @@ The form and manner of this distribution makes it eligible for export under the 
 ## License
 ```
 Copyright 2015-2016 Open Whisper Systems
-Copyright 2020 Dino Team
+Copyright 2020-2022 Dino Team
 
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
 

@@ -1557,11 +1557,22 @@ session_pre_key_bundle *create_alice_pre_key_bundle(signal_protocol_store_contex
     result = ec_public_key_serialize(&alice_signed_pre_key_public_serialized, alice_signed_pre_key_public);
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *alice_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&alice_signed_pre_key_public_serialized_omemo, alice_signed_pre_key_public);
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *signature = 0;
     result = curve_calculate_signature(global_context, &signature,
             ratchet_identity_key_pair_get_private(alice_identity_key_pair),
             signal_buffer_data(alice_signed_pre_key_public_serialized),
             signal_buffer_len(alice_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *signature_omemo = 0;
+    result = curve_calculate_signature(global_context, &signature_omemo,
+            ratchet_identity_key_pair_get_private(alice_identity_key_pair),
+            signal_buffer_data(alice_signed_pre_key_public_serialized_omemo),
+            signal_buffer_len(alice_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *alice_pre_key_bundle = 0;
@@ -1577,7 +1588,8 @@ session_pre_key_bundle *create_alice_pre_key_bundle(signal_protocol_store_contex
     session_signed_pre_key *signed_pre_key_record = 0;
     result = session_signed_pre_key_create(&signed_pre_key_record,
             alice_signed_pre_key_id, time(0), alice_signed_pre_key,
-            signal_buffer_data(signature), signal_buffer_len(signature));
+            signal_buffer_data(signature), signal_buffer_len(signature),
+            signal_buffer_data(signature_omemo), signal_buffer_len(signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(store, signed_pre_key_record);
@@ -1595,7 +1607,9 @@ session_pre_key_bundle *create_alice_pre_key_bundle(signal_protocol_store_contex
     SIGNAL_UNREF(alice_identity_key_pair);
     SIGNAL_UNREF(alice_unsigned_pre_key);
     signal_buffer_free(alice_signed_pre_key_public_serialized);
+    signal_buffer_free(alice_signed_pre_key_public_serialized_omemo);
     signal_buffer_free(signature);
+    signal_buffer_free(signature_omemo);
 
     return alice_pre_key_bundle;
 }
@@ -1620,11 +1634,22 @@ session_pre_key_bundle *create_bob_pre_key_bundle(signal_protocol_store_context 
     result = ec_public_key_serialize(&bob_signed_pre_key_public_serialized, bob_signed_pre_key_public);
     ck_assert_int_eq(result, 0);
 
+    signal_buffer *bob_signed_pre_key_public_serialized_omemo = 0;
+    result = ec_public_key_serialize_omemo(&bob_signed_pre_key_public_serialized_omemo, bob_signed_pre_key_public);
+    ck_assert_int_eq(result, 0);
+
     signal_buffer *signature = 0;
     result = curve_calculate_signature(global_context, &signature,
             ratchet_identity_key_pair_get_private(bob_identity_key_pair),
             signal_buffer_data(bob_signed_pre_key_public_serialized),
             signal_buffer_len(bob_signed_pre_key_public_serialized));
+    ck_assert_int_eq(result, 0);
+
+    signal_buffer *signature_omemo = 0;
+    result = curve_calculate_signature(global_context, &signature_omemo,
+            ratchet_identity_key_pair_get_private(bob_identity_key_pair),
+            signal_buffer_data(bob_signed_pre_key_public_serialized_omemo),
+            signal_buffer_len(bob_signed_pre_key_public_serialized_omemo));
     ck_assert_int_eq(result, 0);
 
     session_pre_key_bundle *bob_pre_key_bundle = 0;
@@ -1640,7 +1665,8 @@ session_pre_key_bundle *create_bob_pre_key_bundle(signal_protocol_store_context 
     session_signed_pre_key *signed_pre_key_record = 0;
     result = session_signed_pre_key_create(&signed_pre_key_record,
             bob_signed_pre_key_id, time(0), bob_signed_pre_key,
-            signal_buffer_data(signature), signal_buffer_len(signature));
+            signal_buffer_data(signature), signal_buffer_len(signature),
+            signal_buffer_data(signature_omemo), signal_buffer_len(signature_omemo));
     ck_assert_int_eq(result, 0);
 
     result = signal_protocol_signed_pre_key_store_key(store, signed_pre_key_record);
@@ -1658,7 +1684,9 @@ session_pre_key_bundle *create_bob_pre_key_bundle(signal_protocol_store_context 
     SIGNAL_UNREF(bob_identity_key_pair);
     SIGNAL_UNREF(bob_unsigned_pre_key);
     signal_buffer_free(bob_signed_pre_key_public_serialized);
+    signal_buffer_free(bob_signed_pre_key_public_serialized_omemo);
     signal_buffer_free(signature);
+    signal_buffer_free(signature_omemo);
 
     return bob_pre_key_bundle;
 }

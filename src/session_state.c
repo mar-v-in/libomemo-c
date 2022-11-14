@@ -78,6 +78,8 @@ struct session_state
     int needs_refresh;
     ec_public_key *alice_base_key;
 
+    uint8_t local_is_alice;
+
     signal_context *global_context;
 };
 
@@ -241,8 +243,13 @@ int session_state_serialize_prepare(session_state *state, Textsecure__SessionStr
     session_structure->sessionversion = state->session_version;
 
     if(state->local_identity_public) {
-        result = ec_public_key_serialize_protobuf(
-                &session_structure->localidentitypublic, state->local_identity_public);
+        if (state->session_version < 4) {
+            result = ec_public_key_serialize_protobuf(
+                    &session_structure->localidentitypublic, state->local_identity_public);
+        } else {
+            result = ec_public_key_serialize_protobuf_ed(
+                    &session_structure->localidentitypublic, state->local_identity_public);
+        }
         if(result < 0) {
             goto complete;
         }
@@ -250,8 +257,13 @@ int session_state_serialize_prepare(session_state *state, Textsecure__SessionStr
     }
 
     if(state->remote_identity_public) {
-        result = ec_public_key_serialize_protobuf(
-                &session_structure->remoteidentitypublic, state->remote_identity_public);
+        if (state->session_version < 4) {
+            result = ec_public_key_serialize_protobuf(
+                    &session_structure->remoteidentitypublic, state->remote_identity_public);
+        } else {
+            result = ec_public_key_serialize_protobuf_ed(
+                    &session_structure->remoteidentitypublic, state->remote_identity_public);
+        }
         if(result < 0) {
             goto complete;
         }
@@ -367,6 +379,9 @@ int session_state_serialize_prepare(session_state *state, Textsecure__SessionStr
         }
         session_structure->has_alicebasekey = 1;
     }
+
+    session_structure->has_localisalice = 1;
+    session_structure->localisalice = state->local_is_alice;
 
 complete:
     return result;
@@ -901,6 +916,12 @@ int session_state_deserialize_protobuf(session_state **state, Textsecure__Sessio
         if(result < 0) {
             goto complete;
         }
+    }
+
+    if (session_structure->has_localisalice) {
+        result_state->local_is_alice = session_structure->localisalice;
+    } else {
+        result_state->local_is_alice = 1; // We are alice by default
     }
 
 complete:
@@ -1776,6 +1797,18 @@ ec_public_key *session_state_get_alice_base_key(const session_state *state)
 {
     assert(state);
     return state->alice_base_key;
+}
+
+void session_state_set_local_is_alice(session_state *state, uint8_t local_is_alice)
+{
+    assert(state);
+    state->local_is_alice = local_is_alice;
+}
+
+uint8_t session_state_get_local_is_alice(const session_state *state)
+{
+    assert(state);
+    return state->local_is_alice;
 }
 
 static void session_state_free_sender_chain(session_state *state)
