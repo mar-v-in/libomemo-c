@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#ifndef _WINDOWS
+#ifndef _WIN32
 #include <unistd.h>
 #else
 #include <basetsd.h>
