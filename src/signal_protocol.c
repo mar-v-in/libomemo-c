@@ -10,9 +10,8 @@
 #include "signal_protocol_internal.h"
 #include "signal_utarray.h"
 
-#ifdef _WINDOWS
+#ifdef _WIN32
 #include "Windows.h"
-#include "WinBase.h"
 #endif
 
 #ifdef DEBUG_REFCOUNT
