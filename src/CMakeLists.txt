@@ -1,10 +1,14 @@
 if(BUILD_SHARED_LIBS AND NOT MSVC)
     find_library(M_LIB m)
 endif()
-if(BUILD_SHARED_LIBS)
-    find_package(Protobuf_C REQUIRED)
+if(BUNDLED_PROTOBUF_C)
+    include(${PROJECT_SOURCE_DIR}/CMakeModules/protobuf_c_bundled.cmake)
 else()
-    find_package(Protobuf_C)
+    if(BUILD_SHARED_LIBS)
+        find_package(Protobuf_C REQUIRED)
+    else()
+        find_package(Protobuf_C)
+    endif()
 endif()
 
 include_directories(
@@ -70,13 +74,18 @@ if(BUILD_SHARED_LIBS)
     if(NOT MSVC)
         target_link_libraries(omemo-c ${M_LIB})
     endif()
-    target_link_libraries(omemo-c Protobuf_C::Protobuf_C)
+    target_link_libraries(omemo-c Protobuf_C)
     set_target_properties(omemo-c PROPERTIES
         VERSION ${OMEMO_C_VERSION}
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
     )
 else()
     target_include_directories(omemo-c PRIVATE ${Protobuf_C_INCLUDE_DIR})
+endif()
+
+if(BUNDLED_PROTOBUF_C)
+    add_dependencies(omemo-c ProtobufCProject)
+    target_link_libraries(omemo-c Protobuf_C)
 endif()
 
 INSTALL(

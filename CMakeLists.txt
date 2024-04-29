@@ -16,6 +16,8 @@ include(GNUInstallDirs)
 option(GENERATE_PKGCONFIG "Generate and install pkg-config files" ${UNIX})
 SET(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
+option(BUNDLED_PROTOBUF_C "Build omemo-c library wih bundled protobuf-c library from github" OFF)
+
 INCLUDE(CheckSymbolExists)
 INCLUDE(CheckCCompilerFlag)
 INCLUDE(TestBigEndian)
