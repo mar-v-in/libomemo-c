@@ -61,12 +61,17 @@ set(omemo_SRCS
     sender_key_record.c
     sender_key_record.h
 )
+set(omemo_OTHER
+    libomemo-c.pc.in
+    omemo-c-config.cmake.in
+)
 
 add_subdirectory(curve25519)
 
 add_library(omemo-c
     ${protobuf_SRCS}
     ${omemo_SRCS}
+    ${omemo_OTHER}
     $<TARGET_OBJECTS:curve25519>
 )
 

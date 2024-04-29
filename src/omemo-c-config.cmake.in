@@ -5,4 +5,4 @@ set_and_check(libomemo-c_INCLUDE_DIR "@PACKAGE_CMAKE_INSTALL_INCLUDEDIR@")
 
 set(LIBOMEMO_C_BUNDLED_PROTOBUF_C @BUNDLED_PROTOBUF_C@)
 
-include("${CMAKE_CURRENT_LIST_DIR}/libomemo-c-targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/omemo-c-targets.cmake")
