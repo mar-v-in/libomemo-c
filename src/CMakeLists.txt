@@ -4,11 +4,7 @@ endif()
 if(BUNDLED_PROTOBUF_C)
     include(${PROJECT_SOURCE_DIR}/CMakeModules/protobuf_c_bundled.cmake)
 else()
-    if(BUILD_SHARED_LIBS)
-        find_package(Protobuf_C REQUIRED)
-    else()
-        find_package(Protobuf_C)
-    endif()
+    find_package(Protobuf_C REQUIRED)
 endif()
 
 

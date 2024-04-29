@@ -54,18 +54,30 @@ if (NOT(PC_Protobuf_C_FOUND))
         protobuf-c
     )
 
-    set(Protobuf_C_NAMES
-        protobuf-c
-        libprotobuf-c
-    )
+    set(PROTOBUF_LIB_DIRS
+        ${PC_PROTOBUF_C_LIBDIR}
+        ${PC_PROTOBUF_C_LIBRARY_DIRS}
+        ${Protobuf_C_ROOT}/lib)
+    if(STATIC_PROTOBUF_C)
+        message(STATUS "Looking for static Protobuf-C")
+        set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+        set(Protobuf_C_NAMES
+            protobuf-c.lib
+            libprotobuf-c.a
+        )
+    else()
+        message(STATUS "Looking for any Protobuf-C")
+        set(Protobuf_C_NAMES
+            protobuf-c
+            libprotobuf-c
+        )
+        list(APPEND PROTOBUF_LIB_DIRS ${Protobuf_C_ROOT}/bin)
+    endif()
     find_library(
         Protobuf_C_LIBRARY protobuf-c
         NAMES ${Protobuf_C_NAMES}
         HINTS
-        ${PC_PROTOBUF_C_LIBDIR}
-        ${PC_PROTOBUF_C_LIBRARY_DIRS}
-        ${Protobuf_C_ROOT}/lib
-        ${Protobuf_C_ROOT}/bin
+        ${PROTOBUF_LIB_DIRS}
     )
 
     include(FindPackageHandleStandardArgs)
