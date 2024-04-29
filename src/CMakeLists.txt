@@ -90,7 +90,6 @@ endif()
 
 if(BUNDLED_PROTOBUF_C)
     add_dependencies(omemo-c ProtobufCProject)
-    target_link_libraries(omemo-c Protobuf_C)
 endif()
 
 INSTALL(
