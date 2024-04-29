@@ -2,8 +2,9 @@ if(BUILD_SHARED_LIBS AND NOT MSVC)
     find_library(M_LIB m)
 endif()
 if(BUILD_SHARED_LIBS)
+    find_package(Protobuf_C REQUIRED)
+else()
     find_package(Protobuf_C)
-    #find_library(PBC_LIB protobuf-c)
 endif()
 
 include_directories(
@@ -74,6 +75,8 @@ if(BUILD_SHARED_LIBS)
         VERSION ${OMEMO_C_VERSION}
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
     )
+else()
+    target_include_directories(${Protobuf_C_INCLUDE_DIR})
 endif()
 
 INSTALL(

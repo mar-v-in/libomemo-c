@@ -26,9 +26,9 @@
 # THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #=============================================================================
 
-if( PROTOBUF_C_INCLUDE_DIR AND PROTOBUF_C_LIBRARY )
+if( Protobuf_C_INCLUDE_DIR AND Protobuf_C_LIBRARY )
     # in cache already
-    set(PROTOBUF_C_FIND_QUIETLY TRUE)
+    set(Protobuf_C_FIND_QUIETLY TRUE)
 endif()
 
 if( UNIX AND NOT( APPLE OR CYGWIN ) )
@@ -40,13 +40,13 @@ if( UNIX AND NOT( APPLE OR CYGWIN ) )
     endif()
 endif()
 
-if (NOT(PC_PROTOBUF_C_FOUND))
-    set( PROTOBUF_C_ROOT "" CACHE STRING "Path to protobuf-c library" )
+if (NOT(PC_Protobuf_C_FOUND))
+    set( Protobuf_C_ROOT "" CACHE STRING "Path to protobuf-c library" )
 
     find_path(
-        PROTOBUF_C_INCLUDE_DIR protobuf-c.h
+        Protobuf_C_INCLUDE_DIR protobuf-c.h
         HINTS
-        ${PROTOBUF_C_ROOT}/include
+        ${Protobuf_C_ROOT}/include
         ${PC_PROTOBUF_C_INCLUDEDIR}
         ${PC_PROTOBUF_C_INCLUDE_DIRS}
         PATH_SUFFIXES
@@ -54,36 +54,36 @@ if (NOT(PC_PROTOBUF_C_FOUND))
         protobuf-c
     )
 
-    set(PROTOBUF_C_NAMES
+    set(Protobuf_C_NAMES
         protobuf-c
         libprotobuf-c
     )
     find_library(
-        PROTOBUF_C_LIBRARY protobuf-c
-        NAMES ${PROTOBUF_C_NAMES}
+        Protobuf_C_LIBRARY protobuf-c
+        NAMES ${Protobuf_C_NAMES}
         HINTS
         ${PC_PROTOBUF_C_LIBDIR}
         ${PC_PROTOBUF_C_LIBRARY_DIRS}
-        ${PROTOBUF_C_ROOT}/lib
-        ${PROTOBUF_C_ROOT}/bin
+        ${Protobuf_C_ROOT}/lib
+        ${Protobuf_C_ROOT}/bin
     )
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(
-        PROTOBUF_C
+        Protobuf
         DEFAULT_MSG
-        PROTOBUF_C_LIBRARY
-        PROTOBUF_C_INCLUDE_DIR
+        Protobuf_C_LIBRARY
+        Protobuf_C_INCLUDE_DIR
     )
 
-    if( PROTOBUF_C_FOUND )
-        set( PROTOBUF_C_LIBRARIES ${PROTOBUF_C_LIBRARY} )
-        set( PROTOBUF_C_INCLUDE_DIRS ${PROTOBUF_C_INCLUDE_DIR} )
+    if( Protobuf_C_FOUND )
+        set( Protobuf_C_LIBRARIES ${PROTOBUF_C_LIBRARY} )
+        set( PProtobuf_INCLUDE_DIRS ${PROTOBUF_C_INCLUDE_DIR} )
         add_library(protobuf-c IMPORTED)
         set_property(TARGET protobuf-c PROPERTY
-                     IMPORTED_LOCATION "${PROTOBUF_C_LIBRARY}")
-        target_include_directories(protobuf-c INTERFACE "${PROTOBUF_C_INCLUDE_DIR}")
+                     IMPORTED_LOCATION "${Protobuf_C_LIBRARY}")
+        target_include_directories(protobuf-c INTERFACE "${Protobuf_C_INCLUDE_DIR}")
     endif()
 
-    mark_as_advanced( PROTOBUF_C_INCLUDE_DIR PROTOBUF_C_LIBRARY )
+    mark_as_advanced( Protobuf_C_INCLUDE_DIR Protobuf_C_LIBRARY )
 endif()
