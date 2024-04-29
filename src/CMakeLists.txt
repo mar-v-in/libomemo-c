@@ -76,7 +76,7 @@ if(BUILD_SHARED_LIBS)
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
     )
 else()
-    target_include_directories(${Protobuf_C_INCLUDE_DIR})
+    target_include_directories(omemo-c ${Protobuf_C_INCLUDE_DIR})
 endif()
 
 INSTALL(
