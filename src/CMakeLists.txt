@@ -71,12 +71,13 @@ if(BUILD_SHARED_LIBS)
     if(NOT MSVC)
         target_link_libraries(${PROJECT_NAME} ${M_LIB})
     endif()
-    target_link_libraries(${PROJECT_NAME} Protobuf_C::Protobuf_C)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         VERSION ${OMEMO_C_VERSION}
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
     )
 endif()
+
+target_link_libraries(${PROJECT_NAME} Protobuf_C::Protobuf_C)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     curve25519/ed25519/nacl_includes
