@@ -67,6 +67,10 @@ add_library(${PROJECT_NAME}
     $<TARGET_OBJECTS:curve25519>
 )
 
+if(BUNDLED_PROTOBUF_C)
+    add_dependencies(${PROJECT_NAME} ProtobufCProject)
+endif()
+
 if(BUILD_SHARED_LIBS)
     if(NOT MSVC)
         target_link_libraries(${PROJECT_NAME} ${M_LIB})
@@ -91,10 +95,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/omemo>"
 )
-
-if(BUNDLED_PROTOBUF_C)
-    add_dependencies(${PROJECT_NAME} ProtobufCProject)
-endif()
 
 INSTALL(
     FILES
