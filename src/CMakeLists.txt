@@ -74,7 +74,7 @@ if(BUILD_SHARED_LIBS)
     if(NOT MSVC)
         target_link_libraries(omemo-c ${M_LIB})
     endif()
-    target_link_libraries(omemo-c Protobuf_C)
+    target_link_libraries(omemo-c Protobuf_C::Protobuf_C)
     set_target_properties(omemo-c PROPERTIES
         VERSION ${OMEMO_C_VERSION}
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
@@ -131,7 +131,7 @@ if(GENERATE_PKGCONFIG)
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/lib${PROJECT_NAME}.pc.in
         ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc @ONLY)
 
-    INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+    INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
 endif()
 
 
@@ -156,4 +156,8 @@ configure_package_config_file(
     INSTALL_DESTINATION "${ConfigPackageLocation}"
     NO_CHECK_REQUIRED_COMPONENTS_MACRO
     PATH_VARS CMAKE_INSTALL_INCLUDEDIR
+)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-config.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
 )

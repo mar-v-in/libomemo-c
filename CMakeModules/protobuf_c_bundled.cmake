@@ -52,7 +52,8 @@ ExternalProject_Add(ProtobufCProject
     INSTALL_COMMAND ""
     UPDATE_COMMAND ""
 )
-add_library(Protobuf_C IMPORTED STATIC)
-set_property(TARGET Protobuf_C PROPERTY
+add_library(protobuf-c IMPORTED STATIC)
+set_property(TARGET protobuf-c PROPERTY
     IMPORTED_LOCATION "${Protobuf_C_LIBRARY}")
-target_include_directories(Protobuf_C INTERFACE "${Protobuf_C_INCLUDE_DIR}")
+target_include_directories(protobuf-c INTERFACE "${Protobuf_C_INCLUDE_DIR}")
+add_library(Protobuf_C::Protobuf_C ALIAS protobuf-c)

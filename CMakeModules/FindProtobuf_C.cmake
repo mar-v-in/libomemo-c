@@ -82,6 +82,7 @@ if (NOT(PC_Protobuf_C_FOUND))
         add_library(protobuf-c IMPORTED UNKNOWN)
         set_property(TARGET protobuf-c PROPERTY
                      IMPORTED_LOCATION "${Protobuf_C_LIBRARY}")
+        add_library(Protobuf_C::Protobuf_C ALIAS protobuf-c)
         target_include_directories(protobuf-c INTERFACE "${Protobuf_C_INCLUDE_DIR}")
     endif()
 
