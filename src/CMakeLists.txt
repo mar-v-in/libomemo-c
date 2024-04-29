@@ -11,14 +11,6 @@ else()
     endif()
 endif()
 
-include_directories(
-    .
-    curve25519/ed25519/nacl_includes
-    curve25519/ed25519/additions
-    curve25519/ed25519/sha512
-    curve25519/ed25519
-    curve25519
-)
 
 set(protobuf_SRCS
     LocalStorageProtocol.pb-c.c
@@ -62,13 +54,13 @@ set(omemo_SRCS
     sender_key_record.h
 )
 set(omemo_OTHER
-    libomemo-c.pc.in
-    omemo-c-config.cmake.in
+    lib${PROJECT_NAME}.pc.in
+    ${PROJECT_NAME}-config.cmake.in
 )
 
 add_subdirectory(curve25519)
 
-add_library(omemo-c
+add_library(${PROJECT_NAME}
     ${protobuf_SRCS}
     ${omemo_SRCS}
     ${omemo_OTHER}
@@ -77,19 +69,30 @@ add_library(omemo-c
 
 if(BUILD_SHARED_LIBS)
     if(NOT MSVC)
-        target_link_libraries(omemo-c ${M_LIB})
+        target_link_libraries(${PROJECT_NAME} ${M_LIB})
     endif()
-    target_link_libraries(omemo-c Protobuf_C::Protobuf_C)
-    set_target_properties(omemo-c PROPERTIES
+    target_link_libraries(${PROJECT_NAME} Protobuf_C::Protobuf_C)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
         VERSION ${OMEMO_C_VERSION}
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
     )
-else()
-    target_include_directories(omemo-c PRIVATE ${Protobuf_C_INCLUDE_DIR})
 endif()
 
+target_include_directories(${PROJECT_NAME} PRIVATE
+    curve25519/ed25519/nacl_includes
+    curve25519/ed25519/additions
+    curve25519/ed25519/sha512
+    curve25519/ed25519
+    curve25519
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+   "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/omemo>"
+)
+
 if(BUNDLED_PROTOBUF_C)
-    add_dependencies(omemo-c ProtobufCProject)
+    add_dependencies(${PROJECT_NAME} ProtobufCProject)
 endif()
 
 INSTALL(
@@ -112,7 +115,7 @@ INSTALL(
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/omemo
 )
 
-INSTALL(TARGETS omemo-c EXPORT ${PROJECT_NAME}-targets
+INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
