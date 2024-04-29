@@ -70,7 +70,7 @@ if (NOT(PC_Protobuf_C_FOUND))
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(
-        Protobuf
+        Protobuf_C
         DEFAULT_MSG
         Protobuf_C_LIBRARY
         Protobuf_C_INCLUDE_DIR
@@ -79,7 +79,7 @@ if (NOT(PC_Protobuf_C_FOUND))
     if( Protobuf_C_FOUND )
         set( Protobuf_C_LIBRARIES ${PROTOBUF_C_LIBRARY} )
         set( PProtobuf_INCLUDE_DIRS ${PROTOBUF_C_INCLUDE_DIR} )
-        add_library(protobuf-c IMPORTED)
+        add_library(protobuf-c IMPORTED UNKNOWN)
         set_property(TARGET protobuf-c PROPERTY
                      IMPORTED_LOCATION "${Protobuf_C_LIBRARY}")
         target_include_directories(protobuf-c INTERFACE "${Protobuf_C_INCLUDE_DIR}")
