@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 project(omemo-c)
 
@@ -11,11 +11,10 @@ SET(OMEMO_C_VERSION_MINOR 5)
 SET(OMEMO_C_VERSION_PATCH 0)
 SET(OMEMO_C_VERSION ${OMEMO_C_VERSION_MAJOR}.${OMEMO_C_VERSION_MINOR}.${OMEMO_C_VERSION_PATCH})
 
-SET(LIB_SUFFIX "" CACHE STRING "Define suffix of directory name (32/64)")
-SET(BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin" CACHE STRING "The directory the binaries are installed in")
-SET(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}" CACHE STRING "The directory the libraries are installed in")
-SET(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include" CACHE PATH "The directory the headers are installed in")
-SET(INSTALL_PKGCONFIG_DIR "${LIB_INSTALL_DIR}/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
+include(GNUInstallDirs)
+
+option(GENERATE_PKGCONFIG "Generate and install pkg-config files" ${UNIX})
+SET(INSTALL_PKGCONFIG_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig" CACHE PATH "Installation directory for pkgconfig (.pc) files")
 
 INCLUDE(CheckSymbolExists)
 INCLUDE(CheckCCompilerFlag)
