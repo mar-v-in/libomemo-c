@@ -43,6 +43,7 @@ endif()
 if (NOT(PC_Protobuf_C_FOUND))
     set( Protobuf_C_ROOT "" CACHE STRING "Path to protobuf-c library" )
 
+    unset(Protobuf_C_INCLUDE_DIR CACHE)
     find_path(
         Protobuf_C_INCLUDE_DIR protobuf-c.h
         HINTS
@@ -58,7 +59,7 @@ if (NOT(PC_Protobuf_C_FOUND))
         ${PC_PROTOBUF_C_LIBDIR}
         ${PC_PROTOBUF_C_LIBRARY_DIRS}
         ${Protobuf_C_ROOT}/lib)
-    if(STATIC_PROTOBUF_C)
+    if(BUILD_WITH_PROTOBUF STREQUAL static)
         message(STATUS "Looking for static Protobuf-C")
         set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
         set(Protobuf_C_NAMES
@@ -73,6 +74,7 @@ if (NOT(PC_Protobuf_C_FOUND))
         )
         list(APPEND PROTOBUF_LIB_DIRS ${Protobuf_C_ROOT}/bin)
     endif()
+    unset(Protobuf_C_LIBRARY CACHE)
     find_library(
         Protobuf_C_LIBRARY protobuf-c
         NAMES ${Protobuf_C_NAMES}
@@ -87,10 +89,11 @@ if (NOT(PC_Protobuf_C_FOUND))
         Protobuf_C_LIBRARY
         Protobuf_C_INCLUDE_DIR
     )
+    message(STATUS "Found ${Protobuf_C_LIBRARY}")
 
     if( Protobuf_C_FOUND )
-        set( Protobuf_C_LIBRARIES ${PROTOBUF_C_LIBRARY} )
-        set( PProtobuf_INCLUDE_DIRS ${PROTOBUF_C_INCLUDE_DIR} )
+        set( Protobuf_C_LIBRARIES ${Protobuf_C_LIBRARY} )
+        set( Protobuf_INCLUDE_DIRS ${Protobuf_C_INCLUDE_DIR} )
         add_library(protobuf-c IMPORTED UNKNOWN)
         set_property(TARGET protobuf-c PROPERTY
                      IMPORTED_LOCATION "${Protobuf_C_LIBRARY}")

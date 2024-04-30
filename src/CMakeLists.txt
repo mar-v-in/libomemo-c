@@ -1,7 +1,7 @@
 if(BUILD_SHARED_LIBS AND NOT MSVC)
     find_library(M_LIB m)
 endif()
-if(BUNDLED_PROTOBUF_C)
+if(BUILD_WITH_PROTOBUF STREQUAL bundled)
     include(${PROJECT_SOURCE_DIR}/CMakeModules/protobuf_c_bundled.cmake)
 else()
     find_package(Protobuf_C REQUIRED)
@@ -49,21 +49,16 @@ set(omemo_SRCS
     sender_key_record.c
     sender_key_record.h
 )
-set(omemo_OTHER
-    lib${PROJECT_NAME}.pc.in
-    ${PROJECT_NAME}-config.cmake.in
-)
 
 add_subdirectory(curve25519)
 
 add_library(${PROJECT_NAME}
     ${protobuf_SRCS}
     ${omemo_SRCS}
-    ${omemo_OTHER}
     $<TARGET_OBJECTS:curve25519>
 )
 
-if(BUNDLED_PROTOBUF_C)
+if(BUILD_WITH_PROTOBUF STREQUAL bundled)
     add_dependencies(${PROJECT_NAME} ProtobufCProject)
 endif()
 
