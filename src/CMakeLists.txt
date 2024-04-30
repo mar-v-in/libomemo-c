@@ -62,17 +62,26 @@ if(BUILD_WITH_PROTOBUF STREQUAL bundled)
     add_dependencies(${PROJECT_NAME} ProtobufCProject)
 endif()
 
+target_link_libraries(${PROJECT_NAME} PRIVATE Protobuf_C::Protobuf_C)
 if(BUILD_SHARED_LIBS)
     if(NOT MSVC)
-        target_link_libraries(${PROJECT_NAME} ${M_LIB})
+        target_link_libraries(${PROJECT_NAME} PRIVATE ${M_LIB})
     endif()
     set_target_properties(${PROJECT_NAME} PROPERTIES
         VERSION ${OMEMO_C_VERSION}
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
     )
+else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC Protobuf_C::Protobuf_C)
+    if(BUILD_WITH_PROTOBUF STREQUAL bundled)
+        # bundling static libraries is quite tricky and error prone
+        # see https://stackoverflow.com/questions/37924383/combining-several-static-libraries-into-one-using-cmake
+        # and other similar topics. So instead we are going to install the bundled lib
+        get_property(PROTOBUF_C_LIB_PATH TARGET Protobuf_C::Protobuf_C PROPERTY IMPORTED_LOCATION)
+        install(FILES ${PROTOBUF_C_LIB_PATH} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
 endif()
 
-target_link_libraries(${PROJECT_NAME} Protobuf_C::Protobuf_C)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     curve25519/ed25519/nacl_includes
@@ -87,7 +96,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/omemo>"
 )
 
-INSTALL(
+install(
     FILES
     signal_protocol.h
     signal_protocol_types.h
@@ -107,7 +116,7 @@ INSTALL(
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/omemo
 )
 
-INSTALL(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
+install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -130,7 +139,7 @@ if(GENERATE_PKGCONFIG)
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/lib${PROJECT_NAME}.pc.in
         ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc @ONLY)
 
-    INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/lib${PROJECT_NAME}.pc DESTINATION "${INSTALL_PKGCONFIG_DIR}")
 endif()
 
 
