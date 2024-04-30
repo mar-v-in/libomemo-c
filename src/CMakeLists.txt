@@ -60,9 +60,16 @@ add_library(${PROJECT_NAME}
 
 if(BUILD_WITH_PROTOBUF STREQUAL bundled)
     add_dependencies(${PROJECT_NAME} ProtobufCProject)
+    # linking to Protobuf_C::Protobuf_C generates invald config.cmake. So use files instead
+    target_link_libraries(${PROJECT_NAME} PUBLIC
+        "$<BUILD_INTERFACE:${Protobuf_C_LIBRARY}>"
+        "$<INSTALL_INTERFACE:\${_IMPORT_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${Protobuf_C_LIBRARY_NAME}>")
+elseif(BUILD_WITH_PROTOBUF STREQUAL static)
+    target_link_libraries(${PROJECT_NAME} PUBLIC Protobuf_C::Protobuf_C)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE Protobuf_C::Protobuf_C)
 endif()
 
-target_link_libraries(${PROJECT_NAME} PRIVATE Protobuf_C::Protobuf_C)
 if(BUILD_SHARED_LIBS)
     if(NOT MSVC)
         target_link_libraries(${PROJECT_NAME} PRIVATE ${M_LIB})
@@ -71,17 +78,7 @@ if(BUILD_SHARED_LIBS)
         VERSION ${OMEMO_C_VERSION}
         SOVERSION ${OMEMO_C_VERSION_MAJOR}
     )
-else()
-    target_link_libraries(${PROJECT_NAME} PUBLIC Protobuf_C::Protobuf_C)
-    if(BUILD_WITH_PROTOBUF STREQUAL bundled)
-        # bundling static libraries is quite tricky and error prone
-        # see https://stackoverflow.com/questions/37924383/combining-several-static-libraries-into-one-using-cmake
-        # and other similar topics. So instead we are going to install the bundled lib
-        get_property(PROTOBUF_C_LIB_PATH TARGET Protobuf_C::Protobuf_C PROPERTY IMPORTED_LOCATION)
-        install(FILES ${PROTOBUF_C_LIB_PATH} DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    endif()
 endif()
-
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     curve25519/ed25519/nacl_includes
