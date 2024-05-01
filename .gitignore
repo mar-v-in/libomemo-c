@@ -6,6 +6,7 @@ build/
 *.a
 
 # IDE-related files
+CMakeLists.txt.user*
 
 # OS generated files
 .DS_Store*
