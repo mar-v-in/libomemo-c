@@ -64,6 +64,7 @@ if(BUILD_WITH_PROTOBUF STREQUAL bundled)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         "$<BUILD_INTERFACE:${Protobuf_C_LIBRARY}>"
         "$<INSTALL_INTERFACE:\${_IMPORT_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${Protobuf_C_LIBRARY_NAME}>")
+    target_include_directories(${PROJECT_NAME} PRIVATE ${Protobuf_C_INCLUDE_DIR})
 elseif(BUILD_WITH_PROTOBUF STREQUAL static)
     target_link_libraries(${PROJECT_NAME} PUBLIC Protobuf_C::Protobuf_C)
 else()
